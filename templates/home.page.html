@@ -1,7 +1,7 @@
 {{ template "base" . }}
 
 {{ define "content" }}
-<div id="main-carousel" class="carousel slide" data-bs-ride="carousel">
+<div id="main-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#main-carousel" data-bs-slide-to="0" class="active"
             aria-current="true" aria-label="Woman and laptop"></button>
@@ -67,26 +67,5 @@
 
     
 </div>
-
-<div class="row my-footer">
-    <div class="col">Left</div>
-    <div class="col">Middle</div>
-    <div class="col">right</div>
-</div>
-
-{{ end }}
-
-{{ define "css" }}
-
-<style>
-    .my-footer{
-        height: 5em;
-        background-color: #163b65;
-        margin-top: 1.5em;
-        padding: 1em;
-        color: #FFFFFF;
-        font-size: 80%;
-    }
-</style>
 
 {{ end }}

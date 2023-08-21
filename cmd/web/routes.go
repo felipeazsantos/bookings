@@ -17,6 +17,10 @@ func routes(app *config.AppConfig) http.Handler {
 
 	router.Get("/", handlers.Repo.Home)
 	router.Get("/about", handlers.Repo.About)
+	router.Get("/rooms/generals-quarters", handlers.Repo.GeneralsRoom)
+	router.Get("/rooms/majors-suite", handlers.Repo.MajorsRoom)
+	router.Get("/contact", handlers.Repo.Contact)
+	router.Get("/reservation", handlers.Repo.Reservation)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))

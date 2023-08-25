@@ -1,33 +1,201 @@
 {{ template "base" . }}
 
+{{ define "css" }}
+
+{{ end }}
+
 {{ define "content" }}
 <div class="container">
     <div class="row">
         <div class="col-md-3"></div>
         <div class="col-md-6">
             <h1 class="mt-5">Search for Availability</h1>
-            <form action="" method="post">
-                <div class="row">
-                    <div class="col">
-                        <div class="mb-3">
-                            <label for="start_date" class="form-label">Starting date</label>
-                            <input required type="date" class="form-control" id="start_date" name="start_date" aria-describedby="startDateHelp">
-                            <div id="startDateHelp" class="form-text">Enter your starting date in the form of DD/MM/YYYY.</div>
+            <form action="" method="post" novalidate class="needs-validation">
+                <div id="reservation-dates">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Starting date</label>
+                                <input required type="text" class="form-control" id="start_date" name="start_date"
+                                    aria-describedby="startDateHelp" placeholder="Arrival date">
+                                <div id="startDateHelp" class="form-text">Enter your starting date in the form of
+                                    DD/MM/YYYY.</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col">
-                        <div class="mb-3">
-                            <label for="end_date" class="form-label">Starting date</label>
-                            <input required type="date" class="form-control" id="end_date" name="end_date" aria-describedby="endDateHelp">
-                            <div id="endDateHelp" class="form-text">Enter your ending date in the form of DD/MM/YYYY.</div>
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">Starting date</label>
+                                <input required type="type" class="form-control" id="end_date" name="end_date"
+                                    aria-describedby="endDateHelp" placeholder="Departure">
+                                <div id="endDateHelp" class="form-text">Enter your ending date in the form of DD/MM/YYYY.
+                                </div>
+                            </div>
+
                         </div>
-        
                     </div>
                 </div>
-
+                
+                <hr>
                 <button type="submit" class="btn btn-primary">Search Availability</button>
-                </form>
+            </form>
+            <button id="test-button">Test Button</button>
         </div>
     </div>
 </div>
+{{ end }}
+
+{{ define "js" }}
+<script>
+    const elem = document.getElementById('reservation-dates');
+    const rangepicker = new DateRangePicker(elem, {
+        format: 'yyyy-mm-dd',
+        buttonClass: 'btn',
+        showOnFocus: true
+    });
+    
+    const attention = Prompt();
+
+    document.getElementById('test-button').addEventListener('click', function() {
+        const html = `
+            <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
+                <div class="row">
+                    <div class="col">
+                        <div id="reservation-dates-modal">
+                            <div class="row">
+                                <div class="col">
+                                    <input disabled required type="text" class="form-control" name="start" id="start" placeholder="Arrival" />
+                                </div>
+                                <div class="col">
+                                    <input disabled required type="text" class="form-control" name="end" id="end" placeholder="Departure" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        `; 
+
+        // attention.toast({msg: 'hello, world!', icon: 'error'});
+        // attention.success({msg: 'hello, world!'})
+        // attention.error({msg: 'Oooops!'})
+        attention.custom({title: 'teste', msg: html})
+    })
+
+    function notify(msg, msgType) {
+        notie.alert({
+            type: msgType,
+            text: msg
+        })
+    }
+
+    function notifyModal(title, text, icon, confirmationButtonText) {
+        Swal.fire({
+            title,
+            text,
+            icon,
+            confirmationButtonText
+        })
+    }
+
+    function Prompt() {
+        const toast = function(c) {
+            const {
+                msg = "",
+                position = 'top-end',
+                icon = 'success'
+            } = c;
+
+            const Toast = Swal.mixin({
+                toast: true,
+                title: msg,
+                position,
+                icon,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            Toast.fire({});
+        };
+
+        const success = function(c) {
+            const {
+                msg = '',
+                title = '',
+                footer = ''
+            } = c;
+
+            Swal.fire({
+                icon: 'success',
+                title,
+                text: msg,
+                footer
+            })
+        }
+
+        const error = function(c) {
+            const {
+                msg = '',
+                title = '',
+                footer = ''
+            } = c;
+
+            Swal.fire({
+                icon: 'error',
+                title,
+                text: msg,
+                footer
+            })
+        }
+
+        const custom = async function(c) {
+            const {
+                msg = "",
+                title = "",
+            } = c
+
+            const { value: formValues } = await Swal.fire({
+                title,
+                html: msg,
+                backdrop: false,
+                focusConfirm: false,
+                showCancelButton: true,
+                willOpen: () => {
+                    const elem = document.getElementById('reservation-dates-modal');
+                    const rp = new DateRangePicker(elem, {
+                        format: 'yyyy-mm-dd',
+                        buttonClass: 'btn',
+                        showOnFocus: true,
+                        orientation: 'top'
+                    })
+                },
+                preConfirm: () => {
+                    return [
+                    document.getElementById('start').value,
+                    document.getElementById('end').value
+                    ]
+                },
+                didOpen: () => {
+                    document.getElementById('start').removeAttribute('disabled');
+                    document.getElementById('end').removeAttribute('disabled');
+                }
+            })
+
+            if (formValues) {
+            Swal.fire(JSON.stringify(formValues))
+            }
+        }
+
+        return {
+            toast,
+            success,
+            error,
+            custom
+        }
+    }
+</script>
 {{ end }}

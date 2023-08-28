@@ -1,5 +1,15 @@
 {{ template "base" . }}
 
+{{ define "css" }}
+
+<style>
+    div:where(.swal2-container) .swal2-html-container {
+        overflow: hidden !important;
+    }
+</style>
+
+{{ end }}
+
 {{ define "content" }}
 
 <div class="container">
@@ -25,11 +35,72 @@
 
     <div class="row">
         <div class="col text-center">
-            <a href="/make-reservation-gq" class="btn btn-success">Check Availability</a>
+            <a  id="check-availability-button" href="#!" class="btn btn-success">Check Availability</a>
         </div>
     </div>
 
     
 </div>
 
+{{ end }}
+
+{{ define "js" }}
+<script>
+    document.getElementById('check-availability-button').addEventListener('click', function() {
+        const html = `
+            <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
+                <div class="row">
+                    <div class="col">
+                        <div id="reservation-dates-modal">
+                            <div class="row">
+                                <div class="col">
+                                    <input disabled required type="text" class="form-control" name="start" id="start" placeholder="Arrival" />
+                                </div>
+                                <div class="col">
+                                    <input disabled required type="text" class="form-control" name="end" id="end" placeholder="Departure" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        `; 
+
+        // attention.toast({msg: 'hello, world!', icon: 'error'});
+        // attention.success({msg: 'hello, world!'})
+        // attention.error({msg: 'Oooops!'})
+        attention.custom({
+            title: 'Choose your dates', 
+            msg: html,
+            willOpen: () => {
+                const elem = document.getElementById('reservation-dates-modal');
+                const rp = new DateRangePicker(elem, {
+                    format: 'yyyy-mm-dd',
+                    buttonClass: 'btn',
+                    showOnFocus: true,
+                    orientation: 'top'
+                    })
+            },
+            callback: function(result) {
+                
+                const form = document.getElementById('check-availability-form');
+                const formData = new FormData(form);
+                formData.append("csrf_token","{{.CSRFToken}}")
+
+                fetch('/search-availability-json', {
+                    method: 'post',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                    })
+            },
+            didOpen: () => {
+                document.getElementById('start').removeAttribute('disabled');
+                document.getElementById('end').removeAttribute('disabled');
+          }
+        })
+    })
+</script>
 {{ end }}

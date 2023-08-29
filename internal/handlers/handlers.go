@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/felipeazsantos/bookings/internal/config"
+	"github.com/felipeazsantos/bookings/internal/forms"
 	"github.com/felipeazsantos/bookings/internal/models"
 	"github.com/felipeazsantos/bookings/internal/render"
 )
@@ -95,6 +96,13 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 	w.Write(out)
 }
 
-func (m *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "make-reservation.page.html", &models.TemplateData{})
+func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, r, "make-reservation.page.html", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
+// PostReservation handles the posting of a reservation form
+func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+	
 }

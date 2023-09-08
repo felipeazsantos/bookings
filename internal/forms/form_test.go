@@ -58,3 +58,21 @@ func TestForm_Has(t *testing.T) {
 		t.Error("The field must be found when was not")
 	}
 }
+
+func TestForm_MinLength(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
+
+	postedData := url.Values{}
+	postedData.Add("a", "abc")
+	postedData.Add("b", "abcd")
+	
+	r.PostForm = postedData
+	form := New(postedData)
+
+	if form.MinLength("a", 4, r) {
+		t.Error("The field doesn't have the min length required, but pass")
+	}
+	if !form.MinLength("b", 4, r) {
+		t.Error("the field has the required min length")
+	}
+}

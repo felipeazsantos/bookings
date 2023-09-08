@@ -37,3 +37,24 @@ func TestForm_Required(t *testing.T) {
 		t.Error("show does not have required fields when it does")
 	}
 }
+
+func TestForm_Has(t *testing.T) {
+	r := httptest.NewRequest("POST", "/whatever", nil)
+	form := New(r.PostForm)
+	var has = form.Has("a", r)
+	if has {
+		t.Error("found the field when should not")
+	}
+
+	postedData := url.Values{}
+	postedData.Add("a", "a")
+
+	r = httptest.NewRequest("POST", "/whatever", nil)
+	r.PostForm = postedData
+	form = New(r.PostForm)
+
+	has = form.Has("a", r)
+	if !has {
+		t.Error("The field must be found when was not")
+	}
+}

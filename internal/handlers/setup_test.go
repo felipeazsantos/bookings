@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"text/template"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/felipeazsantos/bookings/internal/config"
+	"github.com/felipeazsantos/bookings/internal/helpers"
 	"github.com/felipeazsantos/bookings/internal/models"
 	"github.com/felipeazsantos/bookings/internal/render"
 	"github.com/go-chi/chi/v5"
@@ -21,6 +23,8 @@ import (
 var app config.AppConfig
 var session *scs.SessionManager
 var pathToTemplates = "./../../templates"
+var infoLog *log.Logger
+var errorLog *log.Logger
 
 // NoSurf adds CSRF protection to all POST requests
 func NoSurf(next http.Handler) http.Handler {
@@ -82,6 +86,12 @@ func getRoutes() http.Handler {
 	// change this to true when in production
 	app.InProduction = false
 
+	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+
+	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
+
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 	session.Cookie.Persist = true
@@ -102,6 +112,7 @@ func getRoutes() http.Handler {
 	NewHandlers(repo)
 
 	render.NewTemplates(&app)
+	helpers.NewHelpers(&app)
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)

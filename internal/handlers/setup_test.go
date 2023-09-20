@@ -12,6 +12,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/felipeazsantos/bookings/internal/config"
+	"github.com/felipeazsantos/bookings/internal/driver"
 	"github.com/felipeazsantos/bookings/internal/helpers"
 	"github.com/felipeazsantos/bookings/internal/models"
 	"github.com/felipeazsantos/bookings/internal/render"
@@ -81,7 +82,7 @@ func CreateTestTemplateCache() (map[string]*template.Template, error) {
 
 func getRoutes() http.Handler {
 	// what am I going to put in the session
-	gob.Register(models.Reservation{})
+	gob.Register(models.Reservations{})
 
 	// change this to true when in production
 	app.InProduction = false
@@ -100,6 +101,11 @@ func getRoutes() http.Handler {
 
 	app.Session = session
 
+	db, err := driver.ConnectionSQL("host=localhost port=5442 dbname=bookings user=root password=root")
+	if err != nil {
+		log.Fatal("Cannot connect to database! Dying...")
+	}
+
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
@@ -108,7 +114,7 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true
 
-	repo := NewRepo(&app)
+	repo := NewRepo(&app, db)
 	NewHandlers(repo)
 
 	render.NewTemplates(&app)
@@ -128,7 +134,7 @@ func getRoutes() http.Handler {
 	mux.Get("/search-availability", Repo.Availability)
 	mux.Post("/search-availability", Repo.PostAvailability)
 	mux.Post("/search-availability-json", Repo.AvailabilityJson)
-	
+
 	mux.Get("/make-reservation", Repo.Reservation)
 	mux.Post("/make-reservation", Repo.PostReservation)
 	mux.Get("/reservation-summary", Repo.ReservationSummary)

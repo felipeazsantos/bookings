@@ -82,7 +82,10 @@ func CreateTestTemplateCache() (map[string]*template.Template, error) {
 
 func getRoutes() http.Handler {
 	// what am I going to put in the session
-	gob.Register(models.Reservations{})
+	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.Restriction{})
 
 	// change this to true when in production
 	app.InProduction = false
@@ -117,7 +120,7 @@ func getRoutes() http.Handler {
 	repo := NewRepo(&app, db)
 	NewHandlers(repo)
 
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
 
 	mux := chi.NewRouter()

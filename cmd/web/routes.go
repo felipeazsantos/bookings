@@ -10,27 +10,29 @@ import (
 )
 
 func routes(app *config.AppConfig) http.Handler {
-	router := chi.NewRouter()
-	router.Use(middleware.Recoverer)
-	router.Use(NoSurf)
-	router.Use(SessionLoad)
+	mux := chi.NewRouter()
+	mux.Use(middleware.Recoverer)
+	mux.Use(NoSurf)
+	mux.Use(SessionLoad)
 
-	router.Get("/", handlers.Repo.Home)
-	router.Get("/about", handlers.Repo.About)
-	router.Get("/rooms/generals", handlers.Repo.GeneralsRoom)
-	router.Get("/rooms/majors", handlers.Repo.MajorsRoom)
-	router.Get("/contact", handlers.Repo.Contact)
+	mux.Get("/", handlers.Repo.Home)
+	mux.Get("/about", handlers.Repo.About)
+	mux.Get("/rooms/generals", handlers.Repo.GeneralsRoom)
+	mux.Get("/rooms/majors", handlers.Repo.MajorsRoom)
+	mux.Get("/contact", handlers.Repo.Contact)
 
-	router.Get("/search-availability", handlers.Repo.Availability)
-	router.Post("/search-availability", handlers.Repo.PostAvailability)
-	router.Post("/search-availability-json", handlers.Repo.AvailabilityJson)
+	mux.Get("/search-availability", handlers.Repo.Availability)
+	mux.Post("/search-availability", handlers.Repo.PostAvailability)
+	mux.Post("/search-availability-json", handlers.Repo.AvailabilityJson)
+	mux.Get("/choose-room/{id}", handlers.Repo.ChooseRoom)
 	
-	router.Get("/make-reservation", handlers.Repo.Reservation)
-	router.Post("/make-reservation", handlers.Repo.PostReservation)
-	router.Get("/reservation-summary", handlers.Repo.ReservationSummary)
+	
+	mux.Get("/make-reservation", handlers.Repo.Reservation)
+	mux.Post("/make-reservation", handlers.Repo.PostReservation)
+	mux.Get("/reservation-summary", handlers.Repo.ReservationSummary)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
-	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
+	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
-	return router
+	return mux
 }

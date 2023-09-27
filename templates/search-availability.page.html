@@ -32,9 +32,7 @@
                                 <label for="end_date" class="form-label">Starting date</label>
                                 <input required type="type" class="form-control" id="end" name="end"
                                     aria-describedby="endDateHelp" placeholder="Departure">
-                                </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -53,7 +51,8 @@
     const rangepicker = new DateRangePicker(elem, {
       format: 'yyyy-mm-dd',
       buttonClass: 'btn',
-      showOnFocus: true
+      showOnFocus: true,
+      minDate: new Date()
     });
 
     document.getElementById('search-availability-button').addEventListener('click', function() {

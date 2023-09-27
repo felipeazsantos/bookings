@@ -115,15 +115,30 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 }
 
 type jsonResponse struct {
-	OK      bool   `json:"ok"`
-	Message string `json:"message"`
+	OK        bool   `json:"ok"`
+	Message   string `json:"message"`
+	RoomID    string `json:"room_id"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
 }
 
 // AvailabilityJson handles request for availability and send JSON response
 func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
+	sd := r.Form.Get("start")
+	ed := r.Form.Get("end")
+	layout := "2006-01-02"
+	startDate, _ := time.Parse(layout, sd)
+	endDate, _ := time.Parse(layout, ed)
+	roomID, _ := strconv.Atoi(r.Form.Get("room_id"))
+
+	available, _ := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
+
 	resp := jsonResponse{
-		OK:      true,
-		Message: "available",
+		OK:      available,
+		Message: "",
+		RoomID: strconv.Itoa(roomID),
+		StartDate: sd,
+		EndDate: ed,
 	}
 
 	out, err := json.MarshalIndent(resp, "", "    ")
@@ -252,7 +267,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	stringMap["end_date"] = ed
 
 	render.Template(w, r, "reservation-summary.page.html", &models.TemplateData{
-		Data: data,
+		Data:      data,
 		StringMap: stringMap,
 	})
 }

@@ -46,30 +46,6 @@
 
 {{ define "js" }}
 <script>
-    document.getElementById('check-availability-button').addEventListener('click', function() {
-        const html = `
-            <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
-                <div class="row">
-                    <div class="col">
-                        <div id="reservation-dates-modal">
-                            <div class="row">
-                                <div class="col">
-                                    <input disabled required type="text" class="form-control" name="start" id="start" placeholder="Arrival" />
-                                </div>
-                                <div class="col">
-                                    <input disabled required type="text" class="form-control" name="end" id="end" placeholder="Departure" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        `; 
-
-        // attention.toast({msg: 'hello, world!', icon: 'error'});
-        // attention.success({msg: 'hello, world!'})
-        // attention.error({msg: 'Oooops!'})
-        attention.custom({title: 'teste', msg: html})
-    })
+    setupMakeReservationButton("2");
 </script>
 {{ end }}

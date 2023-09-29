@@ -134,11 +134,11 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 	available, _ := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
 
 	resp := jsonResponse{
-		OK:      available,
-		Message: "",
-		RoomID: strconv.Itoa(roomID),
+		OK:        available,
+		Message:   "",
+		RoomID:    strconv.Itoa(roomID),
 		StartDate: sd,
-		EndDate: ed,
+		EndDate:   ed,
 	}
 
 	out, err := json.MarshalIndent(resp, "", "    ")
@@ -272,6 +272,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// ChooseRoom display list of available rooms
 func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 	roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -288,5 +289,35 @@ func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 	res.RoomID = roomID
 	m.App.Session.Put(r.Context(), "reservation", res)
 
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+}
+
+// BookRoom takes URL parameters, builds a session variable, and takes user to make reservation screen
+func (m *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
+	roomID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	sd := r.URL.Query().Get("s")
+	ed := r.URL.Query().Get("e")
+
+	layout := "2006-01-02"
+	startDate, _ := time.Parse(layout, sd)
+	endDate, _ := time.Parse(layout, ed)
+
+	var res models.Reservation
+	res.RoomID = roomID
+	res.StartDate = startDate
+	res.EndDate = endDate
+
+	room, err := m.DB.GetRoomByID(roomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	res.Room = room
+
+	m.App.Session.Put(r.Context(), "reservation", res)
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }

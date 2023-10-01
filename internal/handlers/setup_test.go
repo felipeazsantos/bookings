@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
 	"text/template"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/felipeazsantos/bookings/internal/config"
-	"github.com/felipeazsantos/bookings/internal/driver"
 	"github.com/felipeazsantos/bookings/internal/helpers"
 	"github.com/felipeazsantos/bookings/internal/models"
 	"github.com/felipeazsantos/bookings/internal/render"
@@ -80,7 +80,7 @@ func CreateTestTemplateCache() (map[string]*template.Template, error) {
 	return myCache, nil
 }
 
-func getRoutes() http.Handler {
+func TestMain(m *testing.M) {
 	// what am I going to put in the session
 	gob.Register(models.Reservation{})
 	gob.Register(models.User{})
@@ -104,10 +104,10 @@ func getRoutes() http.Handler {
 
 	app.Session = session
 
-	db, err := driver.ConnectionSQL("host=localhost port=5442 dbname=bookings user=root password=root")
-	if err != nil {
-		log.Fatal("Cannot connect to database! Dying...")
-	}
+	// db, err := driver.ConnectionSQL("host=localhost port=5442 dbname=bookings user=root password=root")
+	// if err != nil {
+	// 	log.Fatal("Cannot connect to database! Dying...")
+	// }
 
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
@@ -117,11 +117,16 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true
 
-	repo := NewRepo(&app, db)
+	repo := NewTestRepo(&app)
 	NewHandlers(repo)
 
 	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
+
+	os.Exit(m.Run())
+}
+
+func getRoutes() http.Handler {
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)

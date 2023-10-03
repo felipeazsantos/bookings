@@ -131,6 +131,20 @@ type jsonResponse struct {
 
 // AvailabilityJson handles request for availability and send JSON response
 func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		// can't parse form, so return appropriate json
+		resp := jsonResponse{
+			OK: false,
+			Message: "Internal server error",
+		}
+
+		out, _ := json.MarshalIndent(&resp, "", "    ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
+
 	sd := r.Form.Get("start")
 	ed := r.Form.Get("end")
 	layout := "2006-01-02"
@@ -150,7 +164,14 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 
 	out, err := json.MarshalIndent(resp, "", "    ")
 	if err != nil {
-		helpers.ServerError(w, err)
+		resp := jsonResponse{
+			OK: false,
+			Message: "Error connection to database",
+		}
+
+		out, _ := json.MarshalIndent(&resp, "", "    ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
 		return
 	}
 

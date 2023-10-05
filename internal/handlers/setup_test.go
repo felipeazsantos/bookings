@@ -104,10 +104,11 @@ func TestMain(m *testing.M) {
 
 	app.Session = session
 
-	// db, err := driver.ConnectionSQL("host=localhost port=5442 dbname=bookings user=root password=root")
-	// if err != nil {
-	// 	log.Fatal("Cannot connect to database! Dying...")
-	// }
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
+	defer close(app.MailChan)
+
+	listenForMail()
 
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
@@ -124,6 +125,14 @@ func TestMain(m *testing.M) {
 	helpers.NewHelpers(&app)
 
 	os.Exit(m.Run())
+}
+
+func listenForMail() {
+	go func() {
+		for {
+			_ = <-app.MailChan
+		}
+	}()
 }
 
 func getRoutes() http.Handler {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -135,7 +136,7 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// can't parse form, so return appropriate json
 		resp := jsonResponse{
-			OK: false,
+			OK:      false,
 			Message: "Internal server error",
 		}
 
@@ -165,7 +166,7 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 	out, err := json.MarshalIndent(resp, "", "    ")
 	if err != nil {
 		resp := jsonResponse{
-			OK: false,
+			OK:      false,
 			Message: "Error connection to database",
 		}
 
@@ -296,6 +297,38 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	// send notification - first to guest
+	htmlMessage := fmt.Sprintf(`
+		<strong>Reservation Confirmation</strong>
+		Dear %s, <br>
+		This is confirm your reservation from %s to %s.
+	`, reservation.FirstName, sd, ed)
+
+	msg := models.MailData{
+		To:       reservation.Email,
+		From:     "me@here.com",
+		Subject:  "Reservation Confirmation",
+		Content:  htmlMessage,
+		Template: "basic.html",
+	}
+
+	m.App.MailChan <- msg
+
+	// send notification to property owner
+	htmlMessage = fmt.Sprintf(`
+		<strong>Reservation Notification</strong>
+		A reservation has been made for %s from %s to %s.
+	`, reservation.Room.RoomName, sd, ed)
+
+	msg = models.MailData{
+		To:      "property@owner.com",
+		From:    "me@here.com",
+		Subject: "Reservation Notification",
+		Content: htmlMessage,
+	}
+
+	m.App.MailChan <- msg
 
 	m.App.Session.Put(r.Context(), "reservation", reservation)
 	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)

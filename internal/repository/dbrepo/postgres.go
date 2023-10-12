@@ -143,7 +143,7 @@ func (m *postgresDBRepo) GetRoomByID(roomID int) (models.Room, error) {
 
 // GetUserByID returns a user by ID
 func (m *postgresDBRepo) GetUserByID(id int) (models.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `select id, first_name, last_name, email, password, access_level, created_at, updated_at
@@ -171,23 +171,22 @@ func (m *postgresDBRepo) GetUserByID(id int) (models.User, error) {
 	return user, nil
 }
 
-
 // UpdateUser update the user in the database
 func (m *postgresDBRepo) UpdateUser(u models.User) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `update users set first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5
 				where id = $6`
 
-	_, err := m.DB.ExecContext(ctx, query, 
-		u.FirstName, 
-		u.LastName, 
-		u.Email, 
-		u.AccessLevel, 
+	_, err := m.DB.ExecContext(ctx, query,
+		u.FirstName,
+		u.LastName,
+		u.Email,
+		u.AccessLevel,
 		time.Now(),
 		u.ID)
-		
+
 	if err != nil {
 		return err
 	}
@@ -197,7 +196,7 @@ func (m *postgresDBRepo) UpdateUser(u models.User) error {
 
 // Authenticate authenticate the user
 func (m *postgresDBRepo) Authenticate(email, password string) (int, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	var id int
@@ -217,4 +216,56 @@ func (m *postgresDBRepo) Authenticate(email, password string) (int, string, erro
 	}
 
 	return id, hashedPassword, nil
+}
+
+// AllReservations returns a slice of all reservations
+func (m *postgresDBRepo) AllReservations() ([]models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `select 
+				r.id, r.first_name, r.last_name, r.email, r.phone, r.start_date, r.end_date, r.room_id,
+				r.created_at, r.updated_at, rm.id, rm.room_name
+			  from reservations r
+			  left join rooms rm on (rm.id = r.room_id)
+			  order by start_date asc
+			`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var i models.Reservation
+		err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.Phone,
+			&i.StartDate,
+			&i.EndDate,
+			&i.RoomID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Room.ID,
+			&i.Room.RoomName,
+		)
+
+		if err != nil {
+			return reservations, err
+		}
+
+		reservations = append(reservations, i)
+	}
+
+	if err = rows.Err(); err != nil {
+		return reservations, err
+	}
+
+	return reservations, nil
 }

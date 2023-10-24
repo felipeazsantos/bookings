@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 15.4 (Debian 15.4-1.pgdg120+1)
--- Dumped by pg_dump version 15.4 (Ubuntu 15.4-1.pgdg22.04+1)
+-- Dumped by pg_dump version 16.0 (Ubuntu 16.0-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -34,7 +34,8 @@ CREATE TABLE public.reservations (
     end_date date NOT NULL,
     room_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    processed integer DEFAULT 0 NOT NULL
 );
 
 
@@ -53,7 +54,7 @@ CREATE SEQUENCE public.reservations_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.reservations_id_seq OWNER TO root;
+ALTER SEQUENCE public.reservations_id_seq OWNER TO root;
 
 --
 -- Name: reservations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
@@ -89,7 +90,7 @@ CREATE SEQUENCE public.restrictions_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.restrictions_id_seq OWNER TO root;
+ALTER SEQUENCE public.restrictions_id_seq OWNER TO root;
 
 --
 -- Name: restrictions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
@@ -129,7 +130,7 @@ CREATE SEQUENCE public.room_restrictions_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.room_restrictions_id_seq OWNER TO root;
+ALTER SEQUENCE public.room_restrictions_id_seq OWNER TO root;
 
 --
 -- Name: room_restrictions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
@@ -165,7 +166,7 @@ CREATE SEQUENCE public.rooms_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.rooms_id_seq OWNER TO root;
+ALTER SEQUENCE public.rooms_id_seq OWNER TO root;
 
 --
 -- Name: rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
@@ -216,7 +217,7 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.users_id_seq OWNER TO root;
+ALTER SEQUENCE public.users_id_seq OWNER TO root;
 
 --
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root

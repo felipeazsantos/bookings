@@ -89,13 +89,11 @@ function Prompt() {
       })
 
       if (result) {
-        if (result.dismiss !== Swal.DismissReason.cancel) {
-          if (result.value !== "") {
-            if (result.callback !== undefined) {
-              c.callback(result)
-            } else {
-              c.callback(false);
-            }
+        if (c.dismiss !== Swal.DismissReason.cancel) {
+          if (c.callback !== undefined) {
+            c.callback(result)
+          } else {
+            c.callback(false);
           }
         }
       } else {

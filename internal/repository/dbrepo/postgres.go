@@ -471,6 +471,8 @@ func (m *postgresDBRepo) GetRestrictionsForRoomByDate(roomID int, start, end tim
 	}
 	defer rows.Close()
 
+	var startDate, endDate string
+
 	for rows.Next() {
 		var rr models.RoomRestriction
 		err := rows.Scan(
@@ -478,12 +480,15 @@ func (m *postgresDBRepo) GetRestrictionsForRoomByDate(roomID int, start, end tim
 			&rr.ReservationID,
 			&rr.RestrictionID,
 			&rr.RoomID,
-			&rr.StartDate,
-			&rr.EndDate,
+			&startDate,
+			&endDate,
 		)
 		if err != nil {
 			return nil, err
 		}
+
+		rr.StartDate, _ = time.Parse("2006-01-02", startDate)
+		rr.EndDate, _ = time.Parse("2006-01-02", endDate)
 
 		restrictions = append(restrictions, rr)
 	}

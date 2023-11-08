@@ -155,7 +155,11 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 	endDate, _ := time.Parse(layout, ed)
 	roomID, _ := strconv.Atoi(r.Form.Get("room_id"))
 
-	available, _ := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
+	available, err := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
 	resp := jsonResponse{
 		OK:        available,
@@ -642,7 +646,7 @@ func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Re
 			if y.ReservationID > 0 {
 				// it's a reservation
 				for d := y.StartDate; d.After(y.EndDate); d = d.AddDate(0, 0, 1) {
-					reservationMap[d.Format("2006-01-2")] = y.ID
+					reservationMap[d.Format("2006-01-2")] = y.ReservationID
 				}
 			} else {
 				// it's a block
@@ -681,4 +685,22 @@ func (m *Repository) AdminDeleteReservation(w http.ResponseWriter, r *http.Reque
 	m.App.Session.Put(r.Context(), "flash", "Reservation deleted")
 
 	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}
+
+// AdminPostReservationsCalendar handles post of reservation calendar
+func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	year, _ := strconv.Atoi(r.Form.Get("y")) 
+	month, _ := strconv.Atoi(r.Form.Get("m"))
+
+	// process blocks
+
+
+	m.App.Session.Put(r.Context(), "flash", "Changes saved")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-calendar?y=%d&m=%d", year, month), http.StatusSeeOther)
 }

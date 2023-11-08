@@ -645,7 +645,7 @@ func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Re
 		for _, y := range restrictions {
 			if y.ReservationID > 0 {
 				// it's a reservation
-				for d := y.StartDate; d.After(y.EndDate); d = d.AddDate(0, 0, 1) {
+				for d := y.StartDate; d.After(y.EndDate) == false; d = d.AddDate(0, 0, 1) {
 					reservationMap[d.Format("2006-01-2")] = y.ReservationID
 				}
 			} else {
@@ -695,11 +695,10 @@ func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *htt
 		return
 	}
 
-	year, _ := strconv.Atoi(r.Form.Get("y")) 
+	year, _ := strconv.Atoi(r.Form.Get("y"))
 	month, _ := strconv.Atoi(r.Form.Get("m"))
 
 	// process blocks
-
 
 	m.App.Session.Put(r.Context(), "flash", "Changes saved")
 	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-calendar?y=%d&m=%d", year, month), http.StatusSeeOther)

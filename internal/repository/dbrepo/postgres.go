@@ -487,8 +487,10 @@ func (m *postgresDBRepo) GetRestrictionsForRoomByDate(roomID int, start, end tim
 			return nil, err
 		}
 
-		rr.StartDate, _ = time.Parse("2006-01-02", startDate)
-		rr.EndDate, _ = time.Parse("2006-01-02", endDate)
+		layout := "2006-01-02 15:04:05 -0700 MST"
+
+		rr.StartDate, _ = time.Parse(layout, startDate)
+		rr.EndDate, _ = time.Parse(layout, endDate)
 
 		restrictions = append(restrictions, rr)
 	}

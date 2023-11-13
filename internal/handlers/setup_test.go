@@ -27,57 +27,10 @@ var pathToTemplates = "./../../templates"
 var infoLog *log.Logger
 var errorLog *log.Logger
 
-// NoSurf adds CSRF protection to all POST requests
-func NoSurf(next http.Handler) http.Handler {
-	csrfHandler := nosurf.New(next)
-	csrfHandler.SetBaseCookie(http.Cookie{
-		HttpOnly: true,
-		Path:     "/",
-		Secure:   app.InProduction,
-		SameSite: http.SameSiteLaxMode,
-	})
-
-	return csrfHandler
-}
-
-// SessionLoad loads and save the session on every request
-func SessionLoad(next http.Handler) http.Handler {
-	return session.LoadAndSave(next)
-}
-
-func CreateTestTemplateCache() (map[string]*template.Template, error) {
-	myCache := map[string]*template.Template{}
-
-	// get all of the files named *.page.html from ./templates
-	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.html", pathToTemplates))
-	if err != nil {
-		return myCache, err
-	}
-
-	// range through all files ending with *.page.html
-	for _, page := range pages {
-		name := filepath.Base(page)
-		ts, err := template.New(name).ParseFiles(page)
-		if err != nil {
-			return myCache, err
-		}
-
-		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
-		if err != nil {
-			return myCache, err
-		}
-
-		if len(matches) > 0 {
-			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*layout.html", pathToTemplates))
-			if err != nil {
-				return myCache, err
-			}
-		}
-
-		myCache[name] = ts
-	}
-
-	return myCache, nil
+var functions = template.FuncMap{
+	"humanDate":  render.HumanDate,
+	"formatDate": render.FormatDate,
+	"iterate":    render.Iterate,
 }
 
 func TestMain(m *testing.M) {
@@ -86,6 +39,7 @@ func TestMain(m *testing.M) {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
+	gob.Register(map[string]int{})
 
 	// change this to true when in production
 	app.InProduction = false
@@ -156,8 +110,86 @@ func getRoutes() http.Handler {
 	mux.Post("/make-reservation", Repo.PostReservation)
 	mux.Get("/reservation-summary", Repo.ReservationSummary)
 
+	mux.Get("/user/login", Repo.ShowLogin)
+	mux.Post("/user/login", Repo.PostShowLogin)
+	mux.Get("/user/logout", Repo.Logout)
+
+	mux.Route("/admin", func(mux chi.Router) {
+		// mux.Use(Auth)
+
+		mux.Get("/dashboard", Repo.AdminDashboard)
+		mux.Get("/reservations-new", Repo.AdminNewReservations)
+		mux.Get("/reservations-all", Repo.AdminAllReservations)
+		mux.Get("/reservations-calendar", Repo.AdminReservationsCalendar)
+		mux.Post("/reservations-calendar", Repo.AdminPostReservationsCalendar)
+		mux.Get("/process-reservation/{src}/{id}/do", Repo.AdminProcessReservation)
+		mux.Get("/delete-reservation/{src}/{id}/do", Repo.AdminDeleteReservation)
+
+		mux.Get("/reservations/{src}/{id}/show", Repo.AdminShowReservation)
+		mux.Post("/reservations/{src}/{id}", Repo.AdminPostShowReservation)
+	})
+
+	mux.Get("/reservations/{src}/{id}/show", Repo.AdminShowReservation)
+	mux.Post("/reservations/{src}/{id}", Repo.AdminPostShowReservation)
+
+
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
 	return mux
 }
+
+// NoSurf adds CSRF protection to all POST requests
+func NoSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   app.InProduction,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	return csrfHandler
+}
+
+// SessionLoad loads and save the session on every request
+func SessionLoad(next http.Handler) http.Handler {
+	return session.LoadAndSave(next)
+}
+
+func CreateTestTemplateCache() (map[string]*template.Template, error) {
+	myCache := map[string]*template.Template{}
+
+	// get all of the files named *.page.html from ./templates
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.html", pathToTemplates))
+	if err != nil {
+		return myCache, err
+	}
+
+	// range through all files ending with *.page.html
+	for _, page := range pages {
+		name := filepath.Base(page)
+		ts, err := template.New(name).ParseFiles(page)
+		if err != nil {
+			return myCache, err
+		}
+
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
+		if err != nil {
+			return myCache, err
+		}
+
+		if len(matches) > 0 {
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*layout.html", pathToTemplates))
+			if err != nil {
+				return myCache, err
+			}
+		}
+
+		myCache[name] = ts
+	}
+
+	return myCache, nil
+}
+
+

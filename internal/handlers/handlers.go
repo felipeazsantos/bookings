@@ -250,7 +250,14 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't parse room_id")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	room, err := m.DB.GetRoomByID(roomID)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "can't get room by id")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -262,6 +269,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		RoomID:    roomID,
 		StartDate: startDate,
 		EndDate:   endDate,
+		Room:      room,
 	}
 
 	form := forms.New(r.PostForm)
